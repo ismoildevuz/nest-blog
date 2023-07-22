@@ -5,6 +5,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { resolve } from 'path';
 import { UserModule } from './user/user.module';
 import { User } from './user/models/user.model';
+import { BlogModule } from './blog/blog.module';
+import { Blog } from './blog/models/blog.model';
 
 @Module({
   imports: [
@@ -31,9 +33,10 @@ import { User } from './user/models/user.model';
       //     rejectUnauthorized: false,
       //   },
       // },
-      models: [User],
+      models: [User, Blog],
     }),
     UserModule,
+    BlogModule,
   ],
   controllers: [],
   providers: [],

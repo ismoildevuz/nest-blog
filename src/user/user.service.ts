@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { compare, hash } from 'bcryptjs';
 import { v4 } from 'uuid';
+import { Blog } from '../blog/models/blog.model';
 
 @Injectable()
 export class UserService {
@@ -121,6 +122,12 @@ export class UserService {
       const user = await this.userRepository.findOne({
         where: { id },
         attributes: ['id', 'full_name', 'login'],
+        include: [
+          {
+            model: Blog,
+            attributes: ['id', 'title', 'description', 'createdAt'],
+          },
+        ],
       });
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);

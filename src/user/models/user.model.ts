@@ -1,4 +1,5 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import { Column, DataType, Model, Table, HasMany } from 'sequelize-typescript';
+import { Blog } from '../../blog/models/blog.model';
 
 interface UserAttrs {
   id: string;
@@ -29,4 +30,7 @@ export class User extends Model<User, UserAttrs> {
     type: DataType.STRING,
   })
   hashed_password: string;
+
+  @HasMany(() => Blog)
+  blog: Blog[];
 }
