@@ -1,6 +1,7 @@
 import { Column, DataType, Model, Table, HasMany } from 'sequelize-typescript';
 import { Blog } from '../../blog/models/blog.model';
 import { Follow } from '../../follow/models/follow.model';
+import { Image } from '../../image/models/image.model';
 
 interface UserAttrs {
   id: string;
@@ -40,6 +41,9 @@ export class User extends Model<User, UserAttrs> {
 
   @HasMany(() => Blog)
   blog: Blog[];
+
+  @HasMany(() => Image)
+  image: Image[];
 
   @HasMany(() => Follow, 'following_id')
   followers: Follow[];

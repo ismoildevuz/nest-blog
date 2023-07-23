@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Headers,
 } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
@@ -21,8 +22,11 @@ export class BlogController {
   @ApiOperation({ summary: 'Create new Blog' })
   @ApiResponse({ status: 201, type: Blog })
   @Post()
-  async create(@Body() createBlogDto: CreateBlogDto) {
-    return this.blogService.create(createBlogDto);
+  async create(
+    @Body() createBlogDto: CreateBlogDto,
+    @Headers('Authorization') authHeader: string,
+  ) {
+    return this.blogService.create(createBlogDto, authHeader);
   }
 
   @ApiOperation({ summary: 'Get all Blog' })
@@ -42,14 +46,21 @@ export class BlogController {
   @ApiOperation({ summary: 'Update Blog by ID' })
   @ApiResponse({ status: 200, type: Blog })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateBlogDto: UpdateBlogDto) {
-    return this.blogService.update(id, updateBlogDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateBlogDto: UpdateBlogDto,
+    @Headers('Authorization') authHeader: string,
+  ) {
+    return this.blogService.update(id, updateBlogDto, authHeader);
   }
 
   @ApiOperation({ summary: 'Delete Blog by ID' })
   @ApiResponse({ status: 200, type: Blog })
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return this.blogService.remove(id);
+  async remove(
+    @Param('id') id: string,
+    @Headers('Authorization') authHeader: string,
+  ) {
+    return this.blogService.remove(id, authHeader);
   }
 }

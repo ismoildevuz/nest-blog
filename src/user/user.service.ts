@@ -16,12 +16,15 @@ import { compare, hash } from 'bcryptjs';
 import { v4 } from 'uuid';
 import { Blog } from '../blog/models/blog.model';
 import { Follow } from '../follow/models/follow.model';
+import { Image } from '../image/models/image.model';
+import { ImageService } from './../image/image.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User)
     private readonly userRepository: typeof User,
+    private readonly imageService: ImageService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -93,8 +96,9 @@ export class UserService {
     }
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, authHeader: string) {
     try {
+      await this.isUserSelf(id, authHeader);
       const user = await this.getOne(id);
       if (updateUserDto.username) {
         const userByUsername = await this.getUserByUsername(
@@ -126,9 +130,11 @@ export class UserService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, authHeader: string) {
     try {
+      await this.isUserSelf(id, authHeader);
       const user = await this.getOne(id);
+      await this.imageService.removeAllImageByUserId(id);
       await this.userRepository.destroy({ where: { id } });
       return user;
     } catch (error) {
@@ -219,6 +225,26 @@ export class UserService {
       return token;
     } catch (error) {
       throw new BadRequestException(error.message);
+    }
+  }
+
+  async verifyToken(authHeader: string) {
+    try {
+      const token = authHeader.split(' ')[1];
+      const user = await this.jwtService.verify(token, {
+        secret: process.env.TOKEN_KEY,
+      });
+      await this.getOne(user.id);
+      return user;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
+  async isUserSelf(id: string, authHeader: string) {
+    const user = await this.verifyToken(authHeader);
+    if (user.role !== 'super-admin' && user.id !== id) {
+      throw new UnauthorizedException('Restricted action');
     }
   }
 }

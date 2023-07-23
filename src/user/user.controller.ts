@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Headers,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -50,14 +51,21 @@ export class UserController {
   @ApiOperation({ summary: 'Update User by ID' })
   @ApiResponse({ status: 200, type: User })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Headers('Authorization') authHeader: string,
+  ) {
+    return this.userService.update(id, updateUserDto, authHeader);
   }
 
   @ApiOperation({ summary: 'Delete User by ID' })
   @ApiResponse({ status: 200, type: User })
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return this.userService.remove(id);
+  async remove(
+    @Param('id') id: string,
+    @Headers('Authorization') authHeader: string,
+  ) {
+    return this.userService.remove(id, authHeader);
   }
 }

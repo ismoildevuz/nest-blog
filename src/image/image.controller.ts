@@ -2,8 +2,8 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
-  Patch,
   Post,
   Res,
   UploadedFile,
@@ -44,15 +44,16 @@ export class ImageController {
   @UseInterceptors(FileInterceptor('image'))
   async create(
     @UploadedFile(new ImageValidationPipe()) image: Express.Multer.File,
+    @Headers('Authorization') authHeader: string,
   ) {
-    return this.imageService.create(image);
+    return this.imageService.create(image, authHeader);
   }
 
   @ApiOperation({ summary: 'Get all Image file name' })
   @ApiResponse({ status: 200 })
   @Get()
-  async findAll() {
-    return this.imageService.findAll();
+  async findAll(@Headers('Authorization') authHeader: string) {
+    return this.imageService.findAll(authHeader);
   }
 
   @ApiOperation({ summary: 'Get Image by file name' })
@@ -65,7 +66,10 @@ export class ImageController {
   @ApiOperation({ summary: 'Delete Image by file name' })
   @ApiResponse({ status: 200 })
   @Delete(':fileName')
-  async remove(@Param('fileName') fileName: string) {
-    return this.imageService.remove(fileName);
+  async remove(
+    @Param('fileName') fileName: string,
+    @Headers('Authorization') authHeader: string,
+  ) {
+    return this.imageService.remove(fileName, authHeader);
   }
 }

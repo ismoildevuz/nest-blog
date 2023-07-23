@@ -20,9 +20,9 @@ export class BlogService {
     private readonly userService: UserService,
   ) {}
 
-  async create(createBlogDto: CreateBlogDto) {
+  async create(createBlogDto: CreateBlogDto, authHeader: string) {
+    await this.userService.isUserSelf(createBlogDto.user_id, authHeader);
     try {
-      await this.userService.getOne(createBlogDto.user_id);
       const newBlog = await this.blogRepository.create({
         id: v4(),
         ...createBlogDto,
@@ -63,9 +63,11 @@ export class BlogService {
     }
   }
 
-  async update(id: string, updateBlogDto: UpdateBlogDto) {
+  async update(id: string, updateBlogDto: UpdateBlogDto, authHeader: string) {
+    const blog = await this.getOne(id);
+    await this.userService.isUserSelf(blog.user.id, authHeader);
+
     try {
-      await this.getOne(id);
       await this.blogRepository.update(updateBlogDto, { where: { id } });
       return this.getOne(id);
     } catch (error) {
@@ -73,9 +75,11 @@ export class BlogService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, authHeader: string) {
+    const blog = await this.getOne(id);
+    await this.userService.isUserSelf(blog.user.id, authHeader);
+
     try {
-      const blog = await this.getOne(id);
       await this.blogRepository.destroy({ where: { id } });
       return blog;
     } catch (error) {

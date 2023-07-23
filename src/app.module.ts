@@ -10,6 +10,7 @@ import { Blog } from './blog/models/blog.model';
 import { ImageModule } from './image/image.module';
 import { FollowModule } from './follow/follow.module';
 import { Follow } from './follow/models/follow.model';
+import { Image } from './image/models/image.model';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { Follow } from './follow/models/follow.model';
       //     rejectUnauthorized: false,
       //   },
       // },
-      models: [User, Blog, Follow],
+      models: [User, Blog, Follow, Image],
     }),
     UserModule,
     BlogModule,

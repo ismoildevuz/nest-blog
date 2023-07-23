@@ -10,6 +10,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { UserService } from '../user/user.service';
 import { v4 } from 'uuid';
 import { User } from '../user/models/user.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class FollowService {
@@ -19,12 +20,13 @@ export class FollowService {
     private readonly userService: UserService,
   ) {}
 
-  async create(createFollowDto: CreateFollowDto) {
+  async create(createFollowDto: CreateFollowDto, authHeader: string) {
+    const user = await this.userService.verifyToken(authHeader);
+
     try {
-      const { follower_id, following_id } = createFollowDto;
-      await this.userService.getOne(follower_id);
+      const { following_id } = createFollowDto;
       await this.userService.getOne(following_id);
-      const follow = await this.checkFollow(follower_id, following_id);
+      const follow = await this.checkFollow(user.id, following_id);
       if (follow) {
         await this.followRepository.destroy({ where: { id: follow.id } });
         return { message: 'Unfollowed' };
@@ -32,6 +34,7 @@ export class FollowService {
         await this.followRepository.create({
           id: v4(),
           ...createFollowDto,
+          follower_id: user.id,
         });
         return { message: 'Followed' };
       }
@@ -40,9 +43,14 @@ export class FollowService {
     }
   }
 
-  async findAll() {
+  async findAll(authHeader: string) {
+    const user = await this.userService.verifyToken(authHeader);
+
     try {
       return this.followRepository.findAll({
+        where: {
+          [Op.or]: [{ follower_id: user.id }, { following_id: user.id }],
+        },
         attributes: ['id'],
         include: [
           {
@@ -62,7 +70,9 @@ export class FollowService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, authHeader: string) {
+    await this.userService.verifyToken(authHeader);
+
     try {
       return this.getOne(id);
     } catch (error) {
