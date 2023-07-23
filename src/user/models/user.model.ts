@@ -1,10 +1,12 @@
 import { Column, DataType, Model, Table, HasMany } from 'sequelize-typescript';
 import { Blog } from '../../blog/models/blog.model';
+import { Follow } from '../../follow/models/follow.model';
 
 interface UserAttrs {
   id: string;
   full_name: string;
-  login: string;
+  username: string;
+  // email: string;
   hashed_password: string;
 }
 
@@ -24,7 +26,12 @@ export class User extends Model<User, UserAttrs> {
   @Column({
     type: DataType.STRING,
   })
-  login: string;
+  username: string;
+
+  // @Column({
+  //   type: DataType.STRING,
+  // })
+  // email: string;
 
   @Column({
     type: DataType.STRING,
@@ -33,4 +40,10 @@ export class User extends Model<User, UserAttrs> {
 
   @HasMany(() => Blog)
   blog: Blog[];
+
+  @HasMany(() => Follow, 'following_id')
+  followers: Follow[];
+
+  @HasMany(() => Follow, 'follower_id')
+  followings: Follow[];
 }

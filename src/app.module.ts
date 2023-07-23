@@ -8,6 +8,8 @@ import { User } from './user/models/user.model';
 import { BlogModule } from './blog/blog.module';
 import { Blog } from './blog/models/blog.model';
 import { ImageModule } from './image/image.module';
+import { FollowModule } from './follow/follow.module';
+import { Follow } from './follow/models/follow.model';
 
 @Module({
   imports: [
@@ -34,11 +36,12 @@ import { ImageModule } from './image/image.module';
       //     rejectUnauthorized: false,
       //   },
       // },
-      models: [User, Blog],
+      models: [User, Blog, Follow],
     }),
     UserModule,
     BlogModule,
     ImageModule,
+    FollowModule,
   ],
   controllers: [],
   providers: [],

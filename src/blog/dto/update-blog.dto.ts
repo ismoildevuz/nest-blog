@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class UpdateBlogDto {
   @ApiProperty({
@@ -12,9 +12,17 @@ export class UpdateBlogDto {
 
   @ApiProperty({
     example: 'Some description',
-    description: 'The description of the Blog',
+    description: 'The body of the Blog',
   })
   @IsOptional()
   @IsString()
-  description?: string;
+  body?: string;
+
+  // @ApiProperty({
+  //   example: 'https://picsum.photos/id/128/200/300',
+  //   description: 'The image url of the Blog',
+  // })
+  // @IsOptional()
+  // @IsUrl()
+  // image_url?: string;
 }

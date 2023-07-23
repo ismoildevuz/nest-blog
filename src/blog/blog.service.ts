@@ -26,6 +26,7 @@ export class BlogService {
       const newBlog = await this.blogRepository.create({
         id: v4(),
         ...createBlogDto,
+        views: 0,
       });
       return this.getOne(newBlog.id);
     } catch (error) {
@@ -36,11 +37,11 @@ export class BlogService {
   async findAll() {
     try {
       return this.blogRepository.findAll({
-        attributes: ['id', 'title', 'description', 'createdAt'],
+        attributes: ['id', 'title', 'body', 'views', 'createdAt'],
         include: [
           {
             model: User,
-            attributes: ['id', 'full_name', 'login'],
+            attributes: ['id', 'full_name', 'username'],
           },
         ],
       });
@@ -51,6 +52,11 @@ export class BlogService {
 
   async findOne(id: string) {
     try {
+      const blog = await this.getOne(id);
+      await this.blogRepository.update(
+        { views: blog.views + 1 },
+        { where: { id } },
+      );
       return this.getOne(id);
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -81,11 +87,11 @@ export class BlogService {
     try {
       const blog = await this.blogRepository.findOne({
         where: { id },
-        attributes: ['id', 'title', 'description', 'createdAt'],
+        attributes: ['id', 'title', 'body', 'views', 'createdAt'],
         include: [
           {
             model: User,
-            attributes: ['id', 'full_name', 'login'],
+            attributes: ['id', 'full_name', 'username'],
           },
         ],
       });

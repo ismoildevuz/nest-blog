@@ -11,7 +11,9 @@ import { User } from '../../user/models/user.model';
 interface BlogAttrs {
   id: string;
   title: string;
-  description: string;
+  body: string;
+  // image_url: string;
+  views: number;
   user_id: string;
 }
 
@@ -31,7 +33,17 @@ export class Blog extends Model<Blog, BlogAttrs> {
   @Column({
     type: DataType.TEXT,
   })
-  description: string;
+  body: string;
+
+  // @Column({
+  //   type: DataType.STRING,
+  // })
+  // image_url: string;
+
+  @Column({
+    type: DataType.INTEGER,
+  })
+  views: number;
 
   @ForeignKey(() => User)
   @Column({

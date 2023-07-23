@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsUrl } from 'class-validator';
 
 export class CreateBlogDto {
   @ApiProperty({
@@ -12,11 +12,19 @@ export class CreateBlogDto {
 
   @ApiProperty({
     example: 'Some description',
-    description: 'The description of the Blog',
+    description: 'The body of the Blog',
   })
   @IsNotEmpty()
   @IsString()
-  description: string;
+  body: string;
+
+  // @ApiProperty({
+  //   example: 'https://picsum.photos/id/128/200/300',
+  //   description: 'The image url of the Blog',
+  // })
+  // @IsNotEmpty()
+  // @IsUrl()
+  // image_url: string;
 
   @ApiProperty({
     example: '699e3064-3aab-478c-bb3f-a70880aedfd5',

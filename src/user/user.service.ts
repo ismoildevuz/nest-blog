@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Sequelize } from 'sequelize-typescript';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './models/user.model';
 import { JwtService } from '@nestjs/jwt';
@@ -14,6 +15,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { compare, hash } from 'bcryptjs';
 import { v4 } from 'uuid';
 import { Blog } from '../blog/models/blog.model';
+import { Follow } from '../follow/models/follow.model';
 
 @Injectable()
 export class UserService {
@@ -25,17 +27,20 @@ export class UserService {
 
   async login(loginUserDto: LoginUserDto) {
     try {
-      const { login, password } = loginUserDto;
-      const userByLogin = await this.getUserByLogin(login);
-      if (!userByLogin) {
-        throw new UnauthorizedException('Login or password is wrong');
+      const { username, password } = loginUserDto;
+      const userByUsername = await this.getUserByUsername(username);
+      if (!userByUsername) {
+        throw new UnauthorizedException('Username or password is wrong');
       }
-      const isMatchPass = await compare(password, userByLogin.hashed_password);
+      const isMatchPass = await compare(
+        password,
+        userByUsername.hashed_password,
+      );
       if (!isMatchPass) {
-        throw new UnauthorizedException('Login or password is wrong');
+        throw new UnauthorizedException('Username or password is wrong');
       }
-      const token = await this.getToken(userByLogin);
-      const user = await this.getOne(userByLogin.id);
+      const token = await this.getToken(userByUsername);
+      const user = await this.getOne(userByUsername.id);
       const response = {
         token,
         user,
@@ -48,10 +53,16 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-      const userByLogin = await this.getUserByLogin(createUserDto.login);
-      if (userByLogin) {
-        throw new BadRequestException('Login already registered!');
+      const userByUsername = await this.getUserByUsername(
+        createUserDto.username,
+      );
+      if (userByUsername) {
+        throw new BadRequestException('Username already registered!');
       }
+      // const userByEmail = await this.getUserByEmail(createUserDto.email);
+      // if (userByEmail) {
+      //   throw new BadRequestException('Email already registered!');
+      // }
       const hashed_password = await hash(createUserDto.password, 7);
       const newUser = await this.userRepository.create({
         id: v4(),
@@ -67,7 +78,7 @@ export class UserService {
   async findAll() {
     try {
       return this.userRepository.findAll({
-        attributes: ['id', 'full_name', 'login'],
+        attributes: ['id', 'full_name', 'username'],
       });
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -85,12 +96,20 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     try {
       const user = await this.getOne(id);
-      if (updateUserDto.login) {
-        const userByLogin = await this.getUserByLogin(updateUserDto.login);
-        if (userByLogin && userByLogin.id != id) {
-          throw new BadRequestException('Login already registered!');
+      if (updateUserDto.username) {
+        const userByUsername = await this.getUserByUsername(
+          updateUserDto.username,
+        );
+        if (userByUsername && userByUsername.id != id) {
+          throw new BadRequestException('Username already registered!');
         }
       }
+      // if (updateUserDto.email) {
+      //   const userByEmail = await this.getUserByEmail(updateUserDto.email);
+      //   if (userByEmail && userByEmail.id != id) {
+      //     throw new BadRequestException('Email already registered!');
+      //   }
+      // }
       if (updateUserDto.password) {
         const hashed_password = await hash(updateUserDto.password, 7);
         await this.userRepository.update(
@@ -121,11 +140,35 @@ export class UserService {
     try {
       const user = await this.userRepository.findOne({
         where: { id },
-        attributes: ['id', 'full_name', 'login'],
+        attributes: ['id', 'full_name', 'username'],
         include: [
           {
             model: Blog,
-            attributes: ['id', 'title', 'description', 'createdAt'],
+            attributes: ['id', 'title', 'body', 'views', 'createdAt'],
+          },
+          {
+            model: Follow,
+            as: 'followers',
+            attributes: ['id'],
+            include: [
+              {
+                model: User,
+                as: 'follower',
+                attributes: ['id', 'full_name', 'username'],
+              },
+            ],
+          },
+          {
+            model: Follow,
+            as: 'followings',
+            attributes: ['id'],
+            include: [
+              {
+                model: User,
+                as: 'following',
+                attributes: ['id', 'full_name', 'username'],
+              },
+            ],
           },
         ],
       });
@@ -138,11 +181,11 @@ export class UserService {
     }
   }
 
-  async getUserByLogin(login: string) {
+  async getUserByUsername(username: string) {
     try {
       const user = await this.userRepository.findOne({
-        where: { login },
-        attributes: ['id', 'full_name', 'login', 'hashed_password'],
+        where: { username },
+        attributes: ['id', 'full_name', 'username', 'hashed_password'],
       });
       return user;
     } catch (error) {
@@ -150,11 +193,24 @@ export class UserService {
     }
   }
 
+  // async getUserByEmail(email: string) {
+  //   try {
+  //     const user = await this.userRepository.findOne({
+  //       where: { email },
+  //       attributes: ['id', 'full_name', 'username', 'email', 'hashed_password'],
+  //     });
+  //     return user;
+  //   } catch (error) {
+  //     throw new BadRequestException(error.message);
+  //   }
+  // }
+
   async getToken(user: User) {
     try {
       const jwtPayload = {
         id: user.id,
-        login: user.login,
+        username: user.username,
+        // email: user.email,
       };
       const token = await this.jwtService.signAsync(jwtPayload, {
         secret: process.env.TOKEN_KEY,

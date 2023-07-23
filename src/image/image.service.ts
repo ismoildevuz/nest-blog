@@ -20,7 +20,11 @@ export class ImageService {
       const file = bucket.file(fileName);
 
       await file.save(image.buffer, { resumable: false });
-      return fileName;
+      const url = `${process.env.API_BASE_URL}/api/image/${fileName}`;
+      return {
+        fileName,
+        url,
+      };
     } catch (error) {
       console.log(error);
       throw new HttpException(
@@ -30,7 +34,17 @@ export class ImageService {
     }
   }
 
-  async getOne(fileName: string, res: Response) {
+  async findAll() {
+    const bucketName = 'upload-image-nest-blog';
+    const bucket = storage.bucket(bucketName);
+
+    const [files] = await bucket.getFiles();
+    const allFileNames = files.map((file) => file.name);
+
+    return allFileNames;
+  }
+
+  async findOne(fileName: string, res: Response) {
     const bucketName = 'upload-image-nest-blog';
     const bucket = storage.bucket(bucketName);
     const file = bucket.file(fileName);
@@ -53,6 +67,8 @@ export class ImageService {
     if (exists[0]) {
       await file.delete();
       return fileName;
+    } else {
+      throw new HttpException('Image not found', HttpStatus.NOT_FOUND);
     }
   }
 
