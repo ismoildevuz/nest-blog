@@ -30,13 +30,13 @@ import { Image } from './image/models/image.model';
       database: process.env.PG_DB,
       autoLoadModels: true,
       logging: false,
-      // ssl: true,
-      // dialectOptions: {
-      //   ssl: {
-      //     require: true,
-      //     rejectUnauthorized: false,
-      //   },
-      // },
+      ssl: true,
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      },
       models: [User, Blog, Follow, Image],
     }),
     UserModule,

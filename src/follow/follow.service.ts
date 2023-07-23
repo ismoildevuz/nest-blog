@@ -25,6 +25,11 @@ export class FollowService {
 
     try {
       const { following_id } = createFollowDto;
+
+      if (user.id == following_id) {
+        throw new BadRequestException('Invalid action');
+      }
+
       await this.userService.getOne(following_id);
       const follow = await this.checkFollow(user.id, following_id);
       if (follow) {
