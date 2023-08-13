@@ -32,7 +32,7 @@ async function bootstrap() {
       next();
     });
 
-    await app.listen(PORT, () => {
+    await app.listen(PORT, '0.0.0.0', () => {
       console.log(`Port: ${PORT}. Server is running...`);
     });
   } catch (error) {
