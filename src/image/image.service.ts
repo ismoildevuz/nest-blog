@@ -14,13 +14,13 @@ import { Image } from './models/image.model';
 import { UserService } from '../user/user.service';
 import { v4 } from 'uuid';
 
-const storage = new Storage({
-  projectId: 'upload-image-392818',
-  keyFilename: 'keyfile.json',
-});
+// const storage = new Storage({
+//   projectId: 'upload-image-392818',
+//   keyFilename: 'keyfile.json',
+// });
 
-const bucketName = 'upload-image-nest-blog';
-const bucket = storage.bucket(bucketName);
+// const bucketName = 'upload-image-nest-blog';
+// const bucket = storage.bucket(bucketName);
 
 @Injectable()
 export class ImageService {
@@ -32,6 +32,8 @@ export class ImageService {
   ) {}
 
   async create(image: Express.Multer.File, authHeader: string) {
+    const bucket = await this.getBucket();
+
     if (!image) throw new BadRequestException('No image');
     const user = await this.userService.verifyToken(authHeader);
 
@@ -53,6 +55,7 @@ export class ImageService {
         url,
       };
     } catch (error) {
+      console.log(error);
       throw new HttpException(
         'Error with uploading images',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -69,6 +72,8 @@ export class ImageService {
   }
 
   async findOne(fileName: string, res: Response) {
+    const bucket = await this.getBucket();
+
     const file = bucket.file(fileName);
     const exists = await file.exists();
     if (!exists[0]) {
@@ -80,6 +85,8 @@ export class ImageService {
   }
 
   async remove(fileName: string, authHeader: string) {
+    const bucket = await this.getBucket();
+
     const image = await this.imageRepository.findOne({
       where: { file_name: fileName },
     });
@@ -101,6 +108,8 @@ export class ImageService {
   }
 
   async removeAllImageByUserId(user_id: string) {
+    const bucket = await this.getBucket();
+
     try {
       const images = await this.imageRepository.findAll({
         where: { user_id },
@@ -129,6 +138,8 @@ export class ImageService {
   }
 
   async generateUniqueFileName() {
+    const bucket = await this.getBucket();
+
     const [files] = await bucket.getFiles();
     const allUniqueFileNames = files.map((file) => file.name);
 
@@ -138,5 +149,19 @@ export class ImageService {
       if (!allUniqueFileNames.includes(fileName)) break;
     }
     return fileName;
+  }
+
+  async getBucket() {
+    const credentials = JSON.parse(process.env.KEY_FILE);
+
+    const storage = new Storage({
+      projectId: 'upload-image-392818',
+      credentials,
+    });
+
+    const bucketName = 'upload-image-nest-blog';
+    const bucket = storage.bucket(bucketName);
+
+    return bucket;
   }
 }
