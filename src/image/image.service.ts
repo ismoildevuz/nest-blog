@@ -47,7 +47,7 @@ export class ImageService {
         user_id: user.id,
       });
 
-      const url = `${process.env.API_BASE_URL}/api/image/${fileName}`;
+      const url = `${process.env.BASE_URL}/api/image/${fileName}`;
       return {
         fileName,
         url,
